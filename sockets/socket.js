@@ -1,49 +1,58 @@
+const { compare } = require('bcryptjs');
+const { comprobarJWT } = require('../helpers/jwt');
 const { io } = require('../index');
 
-/*
-const Bands = require('../models/bands');
-const Band = require('../models/band');
-
-const bands = new Bands();
-
-bands.addBand(new Band('Breaking Benjamin'));
-bands.addBand(new Band('Bon Jovi'));
-bands.addBand(new Band('Héroes del Silencio'));
-bands.addBand(new Band('Metallica'));
+const { usuarioConectado, usuarioDesconectado, grabarMensaje } = require('../controller/socket');
 
 
 // Mensajes de Sockets
 io.on('connection', client => {
     console.log('Cliente conectado');
 
-    client.emit('active-bands', bands.getBands());
+    const [valido, uid] = comprobarJWT(client.handshake.headers['x-token']);
+
+    //Verificar autenticacion
+    if (!valido) { return client.disconnect(); }
+
+    //cliente autenticado
+    usuarioConectado(uid);
+
+    //Ingresar usuario a una sala en especifico
+    client.join(uid);
+
+    //Escuchar del cliente mensaje-personal
+    client.on('mensaje-personal', async(payload) => {
+        await grabarMensaje(payload);
+        io.to(payload.para).emit('mensaje-personal', payload);
+    });
+
 
     client.on('disconnect', () => {
-        console.log('Cliente desconectado');
+        usuarioDesconectado(uid);
     });
 
-    client.on('mensaje', (payload) => {
+    /* client.on('mensaje', (payload) => {
         console.log('Mensaje', payload);
         io.emit('mensaje', { admin: 'Nuevo mensaje' });
-    });
+    }); */
 
-    client.on('vote-band', (payload) => {
+    // client.on('vote-band', (payload) => {
 
-        bands.voteBand(payload.id);
-        io.emit('active-bands', bands.getBands());
-    });
+    //     bands.voteBand(payload.id);
+    //     io.emit('active-bands', bands.getBands());
+    // });
 
-    client.on('add-band', (payload) => {
-        const newBand = new Band(payload.name);
-        bands.addBand(newBand);
-        io.emit('active-bands', bands.getBands());
-    });
+    // client.on('add-band', (payload) => {
+    //     const newBand = new Band(payload.name);
+    //     bands.addBand(newBand);
+    //     io.emit('active-bands', bands.getBands());
+    // });
 
-    client.on('delete-band', (payload) => {
+    // client.on('delete-band', (payload) => {
 
-        bands.deleteBand(payload.id);
-        io.emit('active-bands', bands.getBands());
-    });
+    //     bands.deleteBand(payload.id);
+    //     io.emit('active-bands', bands.getBands());
+    // });
 
     // client.on('emitir-mensaje', ( payload ) => {
     //     // console.log(payload);
@@ -53,4 +62,3 @@ io.on('connection', client => {
 
 
 });
-*/
